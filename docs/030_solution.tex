@@ -1,0 +1,90 @@
+% !TeX spellcheck = ru_RU
+\section{Описание решения}
+
+\subsection{Архитектура системы}
+
+Система состоит из трёх независимых частей: парсер (бэкенд), модуль извлечения сущностей (DS) и база данных с аналитическими запросами (SQL). Парсер и DS-модуль общаются через CSV-файлы, что обеспечивает слабую связанность. Архитектура позволяет легко добавлять новых парсеров для разных фандомов без изменения DS-части.
+
+\subsection{Парсер (бэкенд)}
+
+Парсер реализован в виде абстрактного класса \texttt{BaseParser}, который определяет три абстрактных метода:
+\begin{itemize}
+    \item \texttt{get\_pages()} – возвращает словарь «название страницы → URL»;
+    \item \texttt{fetch\_html(url)} – загружает HTML-код страницы с подменой User-Agent для обхода блокировок;
+    \item \texttt{extract\_text(html)} – извлекает чистый текст из HTML (поиск div с классом \texttt{mw-parser-output} и всех абзацев \texttt{<p>}).
+\end{itemize}
+
+Конкретные реализации:
+\begin{itemize}
+    \item \texttt{LotrParser} – для вселенной «Властелин колец» (20 страниц: 10 персонажей и 10 локаций).
+    \item \texttt{LadybugParser} – для вселенной «Леди Баг» (15 страниц: 10 персонажей и 5 локаций).
+\end{itemize}
+
+Метод \texttt{parse\_to\_csv()} является общим: он обходит страницы, сохраняет результат в CSV-файл (колонки: \texttt{title}, \texttt{url}, \texttt{content}). Для предотвращения блокировки добавлены паузы 3 секунды между запросами и расширенные заголовки HTTP. Замена фандома осуществляется заменой одной строки в файле \texttt{run\_parser.py}.
+
+\subsection{Извлечение сущностей (DS-часть)}
+
+Модуль \texttt{extract\_entities.py} загружает \texttt{data.csv} и обрабатывает каждый документ. На этапе разработки использовалась модель spaCy \texttt{ru\_core\_news\_sm}. В ходе экспериментов выяснилось, что стандартные NER-модели плохо распознают фандомные имена: многие персонажи классифицировались как \texttt{LOC} (локации) вместо \texttt{PER} (персонаж). Для улучшения качества был проведён эксперимент с альтернативной библиотекой \texttt{Natasha} (файл \texttt{extract\_entities1.py}), однако результаты оказались не лучше, и в финальной версии оставлена spaCy с фильтром типов \texttt{['PER', 'LOC']}.
+
+Для каждой обнаруженной сущности типа \texttt{PER} (персонаж) или \texttt{LOC} (локация) запоминается её имя, тип и ID документа. Затем генерируются два CSV-файла:
+\begin{itemize}
+    \item \texttt{entities.csv}: колонки \texttt{entity\_id}, \texttt{entity\_name}, \texttt{type}, \texttt{count} (уникальный ID присваивается последовательно);
+    \item \texttt{doc\_entities.csv}: колонки \texttt{doc\_id}, \texttt{entity\_id} (связь «документ–сущность»).
+\end{itemize}
+Таким образом, каждая сущность получает сквозной идентификатор, а совместные упоминания фиксируются в \texttt{doc\_entities}.
+
+\subsection{Загрузка в PostgreSQL}
+
+Перед импортом CSV-файлы были обработаны вспомогательным скриптом \texttt{csv\_fixer.py}. Он пересохраняет файлы в кодировке UTF-8, заменяет переносы строк внутри ячеек на пробелы и экранирует все поля двойными кавычками.
+
+После получения CSV-файлов они были импортированы в PostgreSQL через DataGrip. Для таблицы \texttt{documents} колонка \texttt{doc\_id} определена как \texttt{SERIAL PRIMARY KEY} (автоинкремент). При импорте \texttt{data.csv} колонка \texttt{doc\_id} была пропущена, что позволило базе сгенерировать значения автоматически. \\
+
+Структура таблиц:
+\begin{lstlisting}[language=SQL, breaklines=true, breakautoindent=false, basicstyle=\ttfamily\small]
+documents (doc_id SERIAL PRIMARY KEY, title TEXT, url TEXT, content TEXT)
+entities (entity_id INT PRIMARY KEY, entity_name TEXT, type TEXT)
+doc_entities (
+    doc_id INTEGER NOT NULL REFERENCES documents(doc_id),
+    entity_id INTEGER NOT NULL REFERENCES entities(entity_id),
+    PRIMARY KEY (doc_id, entity_id)
+)
+\end{lstlisting}
+
+Импорт выполнялся с помощью встроенного импорта DataGrip (CSV, заголовки, разделитель «,», кодировка UTF-8).
+
+\subsection{Аналитические SQL-запросы}
+
+Для ответов на контрольные вопросы были написаны запросы для обеих вселенных. Пример для вселенной «Властелин колец» (с учётом типа \texttt{PER}):
+
+\textbf{Топ-10 персонажей локации 'Мордор':}
+\begin{verbatim}
+WITH docs_with_mordor AS (
+    SELECT de.doc_id
+    FROM doc_entities de
+    JOIN entities e ON de.entity_id = e.entity_id
+    WHERE e.entity_name = 'Мордор' AND e.type = 'LOC'
+)
+SELECT e.entity_name, COUNT(*) AS mentions
+FROM doc_entities de
+JOIN entities e ON de.entity_id = e.entity_id
+WHERE de.doc_id IN (SELECT doc_id FROM docs_with_mordor)
+  AND e.type = 'PER'
+GROUP BY e.entity_name
+ORDER BY mentions DESC
+LIMIT 10;
+\end{verbatim}
+
+Аналогичные запросы реализованы для списка локаций персонажа, частых совместных упоминаний и поиска документов. Для вселенной «Леди Баг» используются имена на русском языке (например, «Париж», «Маринетт Дюпен-Чен»).
+
+\subsection{Визуализация графа связей}
+
+Для визуализации связей между персонажами был построен граф совместных упоминаний. Использовались библиотеки \texttt{NetworkX} (построение графа) и \texttt{matplotlib} (статическая визуализация). Алгоритм работы:
+\begin{enumerate}
+    \item Из \texttt{entities.csv} отбираются только сущности типа \texttt{PER} (персонажи).
+    \item Для каждого документа из \texttt{doc\_entities.csv} находятся все пары персонажей, встретившихся в нём.
+    \item Строится граф, где вершины – персонажи, а рёбра имеют вес, равный количеству совместных документов.
+    \item Применяется фильтрация: оставляются только рёбра с весом \(\ge 5\) и вершины со степенью \(\ge 5\).
+    \item Выполняется визуализация с пропорциональным размером узлов (размер = степень × 50).
+\end{enumerate}
+
+В результате фильтрации исходный граф (256 вершин, 11896 рёбер) был сокращён до 23 вершин и 107 рёбер. Крупные узлы (Фродо, Гэндальф, Саурон, Арагорн) имеют наибольшую степень, что соответствует сюжетной логике. Пример полученного графа приведён на рисунке \ref{fig:graph} в приложении Б.

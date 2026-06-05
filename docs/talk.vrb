@@ -1,0 +1,18 @@
+\frametitle{SQL-запросы (пример для LOTR)}
+\textbf{Топ-10 персонажей локации 'Мордор':}
+    \begin{verbatim}
+WITH docs_with_mordor AS (
+    SELECT de.doc_id
+    FROM doc_entities de
+    JOIN entities e ON de.entity_id = e.entity_id
+    WHERE e.entity_name = 'Мордор' AND e.type = 'LOC'
+)
+SELECT e.entity_name, COUNT(*) AS mentions
+FROM doc_entities de
+JOIN entities e ON de.entity_id = e.entity_id
+WHERE de.doc_id IN (SELECT doc_id FROM docs_with_mordor)
+  AND e.type = 'PER'
+GROUP BY e.entity_name
+ORDER BY mentions DESC
+LIMIT 10;
+    \end{verbatim}

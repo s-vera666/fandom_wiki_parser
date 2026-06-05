@@ -1,0 +1,175 @@
+% !TEX TS-program = xelatex
+% !BIB program = bibtex
+% !TeX spellcheck = ru_RU
+% !TEX root = talk.tex
+
+\documentclass[russian, aspectratio=1610]{beamer}
+
+\input{../docs/preamble.tex}
+\makeatletter
+
+\input{../docs/pretitle.tex}
+\input{../docs/title.tex}
+
+\newcommand{\academicGroup}{\my@title@group@ru}
+\newcommand{\advisorChair}{\my@title@chair@ru}
+\title[Анализ связей в фандомных вселенных]{\my@title@title@ru}
+\author[\my@title@author@ru]{\my@title@author@ru, группа \academicGroup}
+\institute[СПбГУ]{}
+\date{}
+\newcommand{\supervisor}{\my@title@supervisor@ru}
+\newcommand{\supervisorPosition}{\my@title@supervisorPosition@ru}
+\newcommand{\consultant}{\my@title@consultant@ru}
+\newcommand{\consultantPosition}{\my@title@consultantPosition@ru}
+\newcommand{\reviewer}{\my@title@reviewer@ru}
+\newcommand{\reviewerPosition}{\my@title@reviewerPosition@ru}
+\newcommand{\defenseYear}{\my@title@year@ru}
+
+\makeatother
+\begin{document}
+{
+\setbeamertemplate{footline}{}
+
+\begin{frame}
+    \vspace{15pt}
+    \begin{center}
+        \begin{tabular}{c}
+            \scriptsize{Санкт-Петербургский государственный университет} \\
+            \scriptsize{\advisorChair}
+        \end{tabular}
+        \titlepage
+    \end{center}
+    \btVFill
+    {\scriptsize
+        \textbf{Научный руководитель:}  \supervisorPosition~\supervisor \\
+        \textbf{Консультант:}  \consultantPosition~\consultant \\
+        % \textbf{Рецензент:} \reviewerPosition~\reviewer \\
+    }
+    \begin{center}
+        \vspace{5pt}
+        \scriptsize{Санкт-Петербург\\ \defenseYear}
+    \end{center}
+\end{frame}
+}
+
+\begin{frame}{Актуальность и проблема}
+    \begin{itemize}
+        \item Фандомные вики содержат тысячи страниц с персонажами и локациями.
+        \item Ручной анализ связей (кто с кем встречается, где кто бывает) очень трудоёмок.
+        \item Существующие инструменты либо не выделяют сущности автоматически, либо привязаны к одному сайту.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Цель и задачи}
+    \textbf{Цель:} разработать систему извлечения персонажей и локаций из текстов фандомной вики, загрузки в базу данных и аналитических SQL-запросов. \\
+    \vspace{1em}
+    \textbf{Задачи:}
+    \begin{itemize}
+        \item Создать парсер с возможностью смены фандома.
+        \item Настроить извлечение сущностей (NER) с присвоением уникальных ID.
+        \item Загрузить данные в PostgreSQL.
+        \item Написать SQL-запросы для вопросов: топ персонажей локации, локации персонажа, часто вместе, документы по сущности.
+        \item Построить граф совместных упоминаний персонажей.
+    \end{itemize}
+\end{frame}
+
+% \begin{frame}{Архитектура системы}
+%     \begin{center}
+%         \includegraphics[width=0.9\textwidth]{figures/arch.png}
+%     \end{center}
+%     \vspace{0.5em}
+%     Парсер (Python) $\to$ CSV $\to$ Извлечение сущностей (spaCy) $\to$ CSV $\to$ PostgreSQL $\to$ SQL-запросы + граф.
+% \end{frame}
+
+\begin{frame}{Архитектура системы}
+    \begin{center}
+        Парсер (Python) $\to$ CSV $\to$ Извлечение сущностей (spaCy) $\to$ CSV $\to$ PostgreSQL $\to$ SQL-запросы + граф
+    \end{center}
+\end{frame}
+
+\begin{frame}{Парсер (бэкенд)}
+    \begin{itemize}
+        \item Абстрактный класс \texttt{BaseParser} задаёт интерфейс.
+        \item Конкретные реализации:
+            \begin{itemize}
+                \item \texttt{LotrParser} (20 страниц: 10 персонажей + 10 локаций)
+                \item \texttt{LadybugParser} (15 страниц: 10 персонажей + 5 локаций)
+            \end{itemize}
+        \item Для смены фандома – заменить одну строку в \texttt{run\_parser.py}.
+        \item Библиотеки: \texttt{requests}, \texttt{BeautifulSoup4}, \texttt{pandas}.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Извлечение сущностей (DS-часть)}
+    \begin{itemize}
+        \item Модель \texttt{spaCy} \texttt{ru\_core\_news\_sm}.
+        \item Проблема: стандартная модель плохо распознаёт фандомные имена (персонажи как \texttt{LOC}).
+        \item Решение: фильтр по типам \texttt{['PER', 'LOC']}.
+        \item Каждой сущности присваивается уникальный ID.
+        \item Результат: \texttt{entities.csv} (имя, тип, ID, частота) и \texttt{doc\_entities.csv} (связи).
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{База данных и импорт}
+    \begin{itemize}
+        \item Таблицы: \texttt{documents}, \texttt{entities}, \texttt{doc\_entities}.
+        \item \texttt{doc\_id} – автоинкремент (\texttt{SERIAL}).
+        \item Импорт CSV через DataGrip.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{SQL-запросы (пример для LOTR)}
+    \textbf{Топ-10 персонажей локации 'Мордор':}
+    \begin{verbatim}
+WITH docs_with_mordor AS (
+    SELECT de.doc_id
+    FROM doc_entities de
+    JOIN entities e ON de.entity_id = e.entity_id
+    WHERE e.entity_name = 'Мордор' AND e.type = 'LOC'
+)
+SELECT e.entity_name, COUNT(*) AS mentions
+FROM doc_entities de
+JOIN entities e ON de.entity_id = e.entity_id
+WHERE de.doc_id IN (SELECT doc_id FROM docs_with_mordor)
+  AND e.type = 'PER'
+GROUP BY e.entity_name
+ORDER BY mentions DESC
+LIMIT 10;
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}{Граф совместных упоминаний}
+    \begin{itemize}
+        \item Построен на основе \texttt{doc\_entities.csv} и \texttt{entities.csv}.
+        \item Вершины – персонажи (\texttt{PER}), рёбра – совместные документы, вес – количество таких документов.
+        \item Фильтрация: степень >= 5, вес ребра >= 5.
+        \item Результат: исходный граф (256 вершин, 11896 рёбер) $\to$ после фильтрации: (23 вершины, 107 рёбер).
+        \item Крупные узлы (Фродо, Гэндальф, Саурон, Арагорн) – центральные персонажи.
+    \end{itemize}
+    \begin{center}
+        \includegraphics[width=0.7\textwidth]{figures/graph.png}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Результаты}
+    \begin{itemize}
+        \item Разработана расширяемая система извлечения сущностей.
+        \item Проведён успешный парсинг двух фандомов (LOTR, Ladybug).
+        \item Данные загружены в PostgreSQL, SQL-запросы дают осмысленные ответы.
+        \item Построен граф совместных упоминаний, выделены ключевые персонажи.
+        \item Смена фандома требует только нового класса парсера.
+        \item Исходный код доступен в репозитории \url{https://github.com/s-vera666/fandom_wiki_parser}.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Заключение}
+    \begin{itemize}
+        \item Цель достигнута, все задачи выполнены.
+        \item Система готова к практическому использованию.
+        \item В перспективе – нормализация падежей, семантический поиск.
+    \end{itemize}
+    \vspace{2em}
+    Спасибо за внимание!
+\end{frame}
+
+\end{document}

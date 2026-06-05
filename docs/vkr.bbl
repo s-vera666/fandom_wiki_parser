@@ -1,0 +1,74 @@
+\begin{thebibliography}{1}
+\def\selectlanguageifdefined#1{
+\expandafter\ifx\csname date#1\endcsname\relax
+\else\selectlanguage{#1}\fi}
+\providecommand*{\href}[2]{{\small #2}}
+\providecommand*{\url}[1]{{\small #1}}
+\providecommand*{\BibUrl}[1]{\url{#1}}
+\providecommand{\BibAnnote}[1]{}
+\providecommand*{\BibEmph}[1]{#1}
+\ProvideTextCommandDefault{\cyrdash}{\iflanguage{russian}{\hbox to.8em{--\hss--}}{\textemdash}}
+\providecommand*{\BibDash}{\ifdim\lastskip>0pt\unskip\nobreak\hskip.2em plus 0.1em\fi
+\cyrdash\hskip.2em plus 0.1em\ignorespaces}
+\renewcommand{\newblock}{\ignorespaces}
+
+\bibitem{spacy_documentation}
+\selectlanguageifdefined{english}
+AI~Explosion. spaCy: Industrial-strength Natural Language Processing in Python. \BibDash
+\newblock \url{https://spacy.io/}. \BibDash
+\newblock 2025. \BibDash
+\newblock Официальная документация (включая русскую модель ru\_core\_news\_sm).
+
+\bibitem{networkx_doc}
+\selectlanguageifdefined{english}
+Developers~NetworkX. NetworkX: Network Analysis in Python. \BibDash
+\newblock \url{https://networkx.org/}. \BibDash
+\newblock 2025.
+
+\bibitem{mediawiki_api_doc}
+\selectlanguageifdefined{english}
+Foundation~Wikimedia. MediaWiki Action API Documentation. \BibDash
+\newblock \url{https://www.mediawiki.org/wiki/API:Main_page}. \BibDash
+\newblock 2025.
+
+\bibitem{postgresql_doc}
+\selectlanguageifdefined{english}
+Group~PostgreSQL Global~Development. PostgreSQL: The World's Most Advanced Open Source Relational Database. \BibDash
+\newblock \url{https://www.postgresql.org/}. \BibDash
+\newblock 2025.
+
+\bibitem{jehangir_ner_survey_2023}
+\selectlanguageifdefined{english}
+Jehangir~Basra, Radhakrishnan~Saravanan, and Agarwal~Rahul. A survey on Named Entity Recognition — datasets, tools, and methodologies~// \href{https://doi.org/10.1016/j.nlp.2023.100017}{\BibEmph{Natural Language Processing Journal}}. \BibDash
+\newblock 2023. \BibDash
+\newblock Vol.~1. \BibDash
+\newblock P.~100017.
+
+\bibitem{beautifulsoup_doc}
+\selectlanguageifdefined{english}
+Richardson~Leonard. Beautiful Soup Documentation. \BibDash
+\newblock \url{https://www.crummy.com/software/BeautifulSoup/bs4/doc/}. \BibDash
+\newblock 2025.
+
+\bibitem{wang_gnn_survey_2023}
+\selectlanguageifdefined{english}
+Wang~Kunze, Ding~Yihao, and Han~Soyeon~Caren. Graph neural networks for text classification: a survey~// \BibEmph{Artificial Intelligence Review}. \BibDash
+\newblock 2023. \BibDash
+\newblock Принято к публикации, arXiv:2304.11534.
+
+\bibitem{yao_text_gcn_2019}
+\selectlanguageifdefined{english}
+Yao~Liang, Mao~Chengsheng, and Luo~Yuan. \href{https://doi.org/10.1609/aaai.v33i01.33017370}{Graph Convolutional Networks for Text Classification}~// Proceedings of the AAAI Conference on Artificial Intelligence. \BibDash
+\newblock 2019. \BibDash
+\newblock Vol.~33. \BibDash
+\newblock P.~7370--7377.
+
+\bibitem{sokolov_ner_comparison_2024}
+\selectlanguageifdefined{english}
+Соколов~И., Антонов~Е., and Артамонов~А. Оценка программных пакетов для распознавания именованных сущностей~// Физика элементарных частиц и атомного ядра. \BibDash
+\newblock Москва. \BibDash
+\newblock 2024. \BibDash
+\newblock Vol.~55. \BibDash
+\newblock P.~666--668.
+
+\end{thebibliography}

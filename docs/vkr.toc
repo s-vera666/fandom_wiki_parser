@@ -1,0 +1,43 @@
+\xpg@aux {}{russian}
+\contentsline {section}{\numberline {1}Введение}{3}{section.1}%
+\contentsline {section}{\numberline {2}Постановка задачи}{5}{section.2}%
+\contentsline {section}{\numberline {3}Обзор}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Обзор существующих решений}{7}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Обзор используемых технологий}{8}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Выводы по обзору}{8}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Описание решения}{9}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Архитектура системы}{9}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Парсер (бэкенд)}{9}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Извлечение сущностей (DS-часть)}{10}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Загрузка в PostgreSQL}{10}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Аналитические SQL-запросы}{11}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Визуализация графа связей}{12}{subsection.4.6}%
+\contentsline {section}{\numberline {5}Эксперимент}{13}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Условия эксперимента}{13}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Исследовательские вопросы}{13}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Результаты}{13}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Обсуждение результатов}{14}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Угрозы корректности}{15}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Воспроизводимость}{15}{subsection.5.6}%
+\contentsline {section}{\numberline {6}Заключение}{16}{section.6}%
+\contentsline {section}{Приложение А}{18}{section*.2}%
+\contentsline {section}{Приложение Б}{19}{section*.4}%
+\contentsline {section}{Список литературы}{20}{section*.6}%
+\xpg@aux {}{english}
+\xpg@aux {}{english}
+\xpg@aux {}{english}
+\xpg@aux {}{english}
+\xpg@aux {}{english}
+\xpg@aux {}{english}
+\xpg@aux {}{english}
+\xpg@aux {}{english}
+\xpg@aux {}{english}
+\xpg@aux {}{russian}
+\xpg@aux {}{russian}
+\xpg@aux {}{russian}
+\xpg@aux {}{russian}
+\xpg@aux {}{russian}
+\xpg@aux {}{russian}
+\xpg@aux {}{russian}
+\xpg@aux {}{russian}
+\xpg@aux {}{russian}

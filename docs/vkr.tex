@@ -1,0 +1,31 @@
+% !TEX TS-program = xelatex
+% !BIB program = bibtex
+% !TeX spellcheck = ru_RU
+
+\documentclass[14pt, russian]{matmex-diploma-custom}
+
+\input{preamble.tex}
+
+\begin{document}
+
+\input{title.tex}
+\maketitle
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\clearpage
+
+\input{000_intro}
+\input{010_task}
+\input{020_related}
+\input{030_solution}
+\input{040_experiment}
+\input{050_conclusion}
+\input{060_appendix}
+
+\setmonofont{CMU Typewriter Text}
+\nocite{*}
+\bibliographystyle{ugost2008ls}
+\bibliography{vkr}
+
+\end{document}
